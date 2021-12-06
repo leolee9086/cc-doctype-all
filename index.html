@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="en" style="width:100%;height:100%;margin:0;padding:0;border:0;">
+<head>
+    <meta charset="utf-8">
+    <script src="/widgets/cc-baselib/static/vue.js"></script>
+    <script src="/widgets/cc-baselib/static/element-ui/index.js"></script>
+    <script src="/widgets/cc-baselib/static/axios.min.js"></script>
+    <script src="/widgets/cc-baselib/static/vue-clipboard.min.js"></script>
+    <script src="/widgets/cc-baselib/static/vue-router.js"></script>
+    <script src="/widgets/cc-baselib/static/httpVueLoader.js"></script>
+    <script src="/widgets/cc-baselib/static/jszip.min.js"></script>
+    <script src="/widgets/cc-baselib/static/Sortable.min.js"></script>
+    <script src="/widgets/cc-baselib/static/vuedraggable.umd.min.js"></script>
+
+    <script src="/widgets/cc-baselib/src/commonFunctionsForSiyuan.js"></script>
+    <script src="/widgets/cc-baselib/src/siYuanApi.js"></script>
+    <script src="/widgets/cc-baselib/src/componentsList.js"></script>
+
+    <link rel="stylesheet" href="/widgets/cc-baselib/static/element-ui/theme-chalk/index.css">
+    <link id='themeDefaultStyle'>
+    <style>
+        html,html div,html span,label{
+            color:var(--b3-theme-on-background) !important;
+            font-family: var(--b3-font-family);
+        }
+        button,input{
+            background-color:var(--b3-theme-surface-light) !important
+        }
+        .el-table,
+        .el-table__expanded-cell {
+            background-color: transparent !important;
+        }         
+        .el-table th,
+        .el-table tr,
+        .el-table td {
+            background-color: transparent !important;
+        } 
+        .fullwidth>.el-input {
+            width:"100%"
+        }
+    </style>  
+</head>
+<body>
+    <div id=app>
+        <div id="root">
+                <el-row>
+                    <el-col :span="6">
+                        <div style="font-size: smaller;" v-if="需要重新设定路径">无法获取跨域获取数据,请重新插入挂件</div>
+                        <div style="font-size: smaller;" v-if="!需要重新设定路径">文档id:{{当前文档id}}</div>
+                        <div style="font-size: smaller;" v-if="!需要重新设定路径">最后一次编辑:{{当前文档属性["updated"]}}</div>
+                    </el-col>
+                    <el-col :span="6">
+                        <span>显示基础属性</span>
+                        <el-checkbox size=mini v-model="显示基础属性"></el-checkbox>
+                    </el-col>
+                    <el-col :span="6">
+                        <span>显示自定义属性</span>
+                        <el-checkbox size=mini v-model="显示自定义属性"></el-checkbox>
+                    </el-col>
+                      <el-col :span="6">
+                    <span >显示原始自定义属性</span>
+                        <el-checkbox size=mini  v-model="显示原始自定义属性"></el-checkbox>
+                    </el-col> 
+                    <el-col :span="6">
+                        <span >显示源属性名</span>
+                            <el-checkbox  size=mini v-model="显示源属性名"></el-checkbox>
+                    </el-col> 
+                    <el-col :span="6">
+                            <el-switch  size=mini v-model="显示文档管理页面" active-text="显示文档管理页面"></el-switch>
+                    </el-col> 
+                    <el-col :span="6">
+                        <el-switch  size=mini v-model="显示块集合管理页面" active-text="显示块集合管理页面"></el-switch>
+                </el-col> 
+                </el-row>
+                <el-divider></el-divider>
+                <el-tabs  v-model="当前活动面板">
+                <el-tab-pane label="当前文档属性" name="当前文档属性">
+                <cc-block-attr-form
+                   :主界面="主界面"
+                   :apitoken="apitoken"
+                   :思源伺服ip="思源伺服ip"
+                   :内容块id="当前文档id"
+                   :是否显示基础属性="显示基础属性"
+                   :是否显示源属性名="显示源属性名"
+                   :是否显示原始自定义属性="显示原始自定义属性"
+                   :是否显示自定义属性="显示自定义属性"
+                   :新属性模板="新属性"
+                   :属性类型="属性类型"
+                   :书签列表="书签列表"
+                   >
+
+                   </cc-block-attr-form>
+                </el-tab-pane>
+                <el-tab-pane label="当前块属性" name="当前块属性">
+                    <cc-block-attr-form
+                       :主界面="主界面"
+                       :apitoken="apitoken"
+                       :思源伺服ip="思源伺服ip"
+                       :内容块id="当前块id"
+                       :是否显示基础属性="显示基础属性"
+                       :是否显示源属性名="显示源属性名"
+                       :是否显示原始自定义属性="显示原始自定义属性"
+                       :是否显示自定义属性="显示自定义属性"
+                       :新属性模板="新属性"
+                       :属性类型="属性类型"
+                       :书签列表="书签列表"
+                       >
+    
+                       </cc-block-attr-form>
+                    </el-tab-pane>
+                <el-tab-pane 
+                label="配置集合规则" 
+                name="配置集合规则"
+                v-if="显示块集合管理页面"
+                >
+                    <cc-block-attr-table
+                    :显示源属性名="显示源属性名"
+                    :当前文档信息="当前文档信息"
+                    :显示自定义属性="显示自定义属性"
+                    :书签列表="书签列表"
+                    :新属性="新属性"
+                    :属性类型="属性类型"
+                    :sql="sql"
+                    :显示基础属性="显示基础属性"
+                    :思源伺服ip="思源伺服ip"
+                    :apitoken="apitoken"
+                    :主界面="主界面"
+                    :显示原始自定义属性="显示原始自定义属性">
+                    </cc-block-attr-table>
+                </el-tab-pane>
+                <el-tab-pane 
+                v-for="(item,i) in 集合规则对象"
+                v-if="显示块集合管理页面"
+                :label="item['name']||item['id']" 
+                :name="item['id']"
+                >
+                    <cc-block-attr-table
+                    :显示源属性名="显示源属性名"
+                    :集合规则块="当前集合规则块"
+                    :当前文档信息="当前文档信息"
+                    :显示自定义属性="显示自定义属性"
+                    :书签列表="书签列表"
+                    :新属性="新属性"
+                    :属性类型="属性类型"
+                    :sql="sql"
+                    :显示基础属性="显示基础属性"
+                    :思源伺服ip="思源伺服ip"
+                    :apitoken="apitoken"
+                    :主界面="主界面"
+                    :显示原始自定义属性="显示原始自定义属性">
+                    </cc-block-attr-table>
+                </el-tab-pane>
+                <el-tab-pane 
+                v-for="(i,item) in sql列表对象"
+                :label="item" 
+                :name="item"
+                v-if="显示文档管理页面"
+                >
+                    <cc-block-attr-table
+                    :显示源属性名="显示源属性名"
+                    :当前文档信息="当前文档信息"
+                    :显示自定义属性="显示自定义属性"
+                    :书签列表="书签列表"
+                    :新属性="新属性"
+                    :属性类型="属性类型"
+                    :sql="sql"
+                    :显示基础属性="显示基础属性"
+                    :思源伺服ip="思源伺服ip"
+                    :apitoken="apitoken"
+                    :主界面="主界面"
+                    :显示原始自定义属性="显示原始自定义属性">
+                    </cc-block-attr-table>
+                </el-tab-pane>
+               
+                <el-tab-pane 
+                label="帮助" 
+                name="帮助"
+                >
+                    <div>
+                        <div>在笔记内容中使用/*@doctype*/的代码块内容会被用于配置自定义集合规则
+                        如果代码块自定义属性留空,则对应的文档/块管理页面与挂件自带的几个文档管理页面一致.
+                        </div>
+                        <div>
+                        如果代码块具有自定义属性,对应的文档/块管理页面显示的自定义属性字段默认值与代码块配置一致
+                        </div>
+                        <div>
+                         表格显示不完全或者不正确时刷新即可.   
+                        </div>
+                        <div>
+                        当前块属性页面显示的是你正在编辑的块的属性和样式.   
+                        </div>
+                        <div>
+                        目前只有表单编辑的内容会实时反应到界面上.   
+                        </div>
+                        <div>
+                        如果发现当前块属性页面等不可用,尝试用iframe嵌入挂件.   
+                        </div>
+                        <div>
+                        如果问题依旧可能需要硬刷新.  
+                        </div>
+                    </div>
+                </el-tab-pane>
+            </el-tabs>
+        </div>
+    </div>
+</body>
+<script >
+    Vue.use(httpVueLoader);
+    Vue.use(vuedraggable);
+
+  //  Vue.use(VueRouter);
+    var vm = new Vue({
+        el: "#app",
+        components:componentList,
+        mounted: async function(){
+            let that = this
+            that.思源伺服ip = window.location.host
+
+            that.获取主界面()
+            that.获取挂件自身元素()
+            await that.获取文档id()
+            await that.获取文档信息()
+            await that.获取文档属性()
+            await that.获取书签列表()
+            await that.主界面增加文档属性监听器()
+            that.获取笔记内sql()
+            that.获取预定义属性()
+            that.$获取思源主界面主题(that.主界面 )
+            that.显示原始自定义属性= true
+            that.显示原始自定义属性=false
+            that.主界面.addEventListener('click',that.获取当前块id)
+            that.主界面.addEventListener('keyup',that.获取当前块id) 
+        },
+        watch:{
+            当前活动面板(当前活动面板名){
+                let that = this
+                if(that.sql列表对象[当前活动面板名]){
+                that.sql=that.解析模板sql(that.sql列表对象[当前活动面板名])}
+                if(当前活动面板名=="配置集合规则"){
+                    that.sql = 'select * from blocks where type = "c" and content like "/*@doctype*/%"'
+                    that.获取笔记内sql()
+                }
+                if(that.集合规则对象[当前活动面板名]){
+                    let content = that.集合规则对象[当前活动面板名]["content"]
+                   // console.log(content)
+                    let index = content.indexOf("select * from blocks where")
+                    if(index!=-1){
+                        that.sql = content.slice(index)
+                      //  console.log(that.sql)
+                    }
+                    that.当前集合规则块=that.集合规则对象[当前活动面板名]
+                }
+
+               /* if(当前活动面板名=='当前块属性'){
+                    that.主界面.addEventListener('click',that.获取当前块id)
+                    that.主界面.addEventListener('keyup',that.获取当前块id) 
+                }
+                else{
+                    that.主界面.removeEventListener('click',that.获取当前块id)
+                    that.主界面.removeEventListener('keyup',that.获取当前块id)
+
+                }*/
+
+            }
+            
+        },
+        data(){
+            return{
+                显示块集合管理页面:false,
+                集合规则对象:{},
+                当前集合规则块:{},
+                自定义sql:{},
+                显示自定义属性:true,
+                sql列表对象:{
+                            "查看同名文档":"select * from blocks where content ='.action{.content}' and type = 'd'",
+                            "查看路径下所有文档":"select * from blocks where path like '.action{.aspath}%' and type='d' and not id ='.action{.id}'"
+                            },
+                当前活动面板:"当前文档属性",
+                显示文档管理页面:false,
+                新属性:{"type":"原始文本","name":"newattr","label":"newattr","value":"default"},
+                当前文档解析属性:{},
+                显示原始自定义属性:false,
+                错误提示:false,
+                需要重新设定路径:false,
+                显示基础属性:true,
+                思源伺服ip:{},
+                主界面:{},
+                文档属性对象数组:{},
+                挂件自身id:"",
+                当前文档id:"",
+                apitoken:"",
+                挂件自身元素:{},
+                挂件自身属性:{},
+                当前文档属性:{},
+                文档头图元素:{},
+                文档标题元素:{},
+                文案属性元素:{},
+                书签列表:[],
+                当前属性模板信息:{},
+                当前模板对象:{},
+                模板属性数组:{},
+                文档被引用数:0,
+                属性类型:["图片","文本","块链接",'超链接','原始文本','附件'],
+                临时块属性数组:{},
+                临时块属性:{},
+                显示源属性名:false,
+                临时链接锚文本:"",
+                当前文档信息:{},
+                同名文档列表:[],
+                子文档列表:"",
+                同名文档属性名列表:[],
+                sql:"",
+                当前块id:"",
+                自定义sql块列表:[{"id":"id","content":"content"}],
+                预定义属性规则对象:{},
+                预定义属性规则数组:[],
+            }
+        },
+        methods:{
+            获取主题:function(){
+                let that =this
+                主题元素 = that.主界面.querySelector('#themeDefaultStyle')
+                let 复制主题元素 =  window.document.querySelector('#themeDefaultStyle')
+                console.log(复制主题元素)
+                复制主题元素.setAttribute('rel',主题元素.getAttribute('rel'))
+                复制主题元素.setAttribute('type',主题元素.getAttribute('type'))
+                复制主题元素.setAttribute('href',主题元素.getAttribute('href'))
+            },
+            获取当前块id:function(){
+                let that = this
+                this.当前块id =this.$获取事件目标块id(event)
+                that.获取主题()
+            },
+            
+            获取笔记内sql:async function(){
+                let that = this
+                let sql =  'select * from blocks where type = "c" and content like "/*@doctype*/%"'
+                this.自定义sql块列表 = await that.$以开头标记请求思源代码块数组('/*@doctype*/')
+             //   console.log(自定义sql块列表)
+                this.自定义sql块列表.forEach(el=>{
+                 let id = el["id"]   
+                 that.$set(that.集合规则对象,id,el)}
+                )
+            },
+            解析模板sql(sql){
+                let tempsql = sql.slice(0)
+                let 块信息=this.当前文档信息
+                tempsql = tempsql.replace(/\.action\{\.id\}/g,块信息["id"])
+                tempsql = tempsql.replace(/\.action\{\.content\}/g,this.当前文档信息["content"])
+                tempsql = tempsql.replace(/\.action\{\.alias\}/g,this.当前文档信息["alias"])
+                tempsql = tempsql.replace(/\.action\{\.name\}/g,this.当前文档信息["name"])
+                tempsql = tempsql.replace(/\.action\{\.updated\}/g,this.当前文档信息["updated"])
+                tempsql = tempsql.replace(/\.action\{\.hpath\}/g,this.当前文档信息["hpath"])
+                tempsql = tempsql.replace(/\.action\{\.path\}/g,this.当前文档信息["path"])
+                tempsql = tempsql.replace(/\.action\{\.aspath\}/g,this.当前文档信息["path"].slice(0, this.当前文档信息["path"].length - 3))
+              //  console.log("tempsql",tempsql)
+                return tempsql
+            },
+
+            校验属性名(属性名){
+                属性名=属性名.replace(/[^\a-\z\A-\Z0-9]/g,"")
+                this.新属性['name']=属性名
+              //  console.log(属性名)
+            },
+            设定新属性:async function (新属性){
+                let that =this
+              //  console.log(新属性)
+                let 真实新属性名 = "custom-"+新属性["name"]
+                if (that.当前文档属性[真实新属性名] ){
+                    新属性["name"]=新属性["name"]+"new"
+                    that.设定新属性(新属性)
+                }
+                else {
+                let 新属性对象 = {"value":新属性["value"],"label":新属性["label"],"type":新属性["type"]}
+                let 新属性文本 = JSON.stringify(新属性对象)
+                that.$set(that.当前文档属性,真实新属性名,新属性文本)
+                await that.设定文档属性(真实新属性名,新属性文本)
+                await that.获取文档属性()
+                }
+            },
+            设定解析后属性(item){
+                let that =this
+                if(!that.显示原始自定义属性){
+                    that.当前文档属性[item]=JSON.stringify( that.当前文档解析属性[item])
+                    that.设定文档属性(item,that.当前文档属性[item])}
+            },
+            主界面增加文档属性监听器(){
+                let that = this
+                that.主界面.addEventListener("moseup",that.文档属性监听器)
+                window.addEventListener("focus",that.文档属性监听器)
+            },
+            文档属性监听器(){
+                let that = this
+                that.获取文档属性()
+                
+            },
+            打开链接(link){
+                let that = this
+                that.获取主界面()
+                let 虚拟链接 =  that.主界面.createElement("span")
+                虚拟链接.setAttribute("data-type","a")
+                虚拟链接.setAttribute("data-href",link)
+                let 临时目标 = that.主界面.querySelector(".protyle-wysiwyg div[data-node-id] div[contenteditable]")
+              //  console.log(临时目标)
+                临时目标.appendChild(虚拟链接)
+                let 点击事件 =  that.主界面.createEvent('MouseEvents')
+                点击事件.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                虚拟链接.dispatchEvent(点击事件);
+                虚拟链接.remove()
+            },
+            窗口内打开:async function(id){
+                let that = this
+                id = id.replace("((","").replace("))","")
+                that.获取主界面()
+                let 虚拟链接 =  that.主界面.createElement("span")
+                虚拟链接.setAttribute("data-type","block-ref")
+                虚拟链接.setAttribute("data-id",id)
+                let 临时目标 = that.主界面.querySelector(".protyle-wysiwyg div[data-node-id] div[contenteditable]")
+              //  console.log(临时目标)
+                临时目标.appendChild(虚拟链接)
+                let 点击事件 =  that.主界面.createEvent('MouseEvents')
+                点击事件.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                虚拟链接.dispatchEvent(点击事件);
+                虚拟链接.remove()
+            },
+            获取书签列表:async function(){
+                let that = this
+                await axios({
+                    method:"post",
+                    url:'http://'+that.思源伺服ip + '/api/attr/getBookmarkLabels',
+                    headers:{'Authorization': 'Token '+ that.apitoken },
+                    data:({})
+                    }).then(
+                        result=>{
+                           /// console.log(result.data)
+                            that.书签列表 = result.data["data"]
+                        }
+                    )
+
+            },
+            解析思源块链接:async function (链接id){
+                let that = this
+                that.临时链接锚文本 = await 获取思源块链接锚文本(that.思源伺服ip,that.apitoken,链接id)
+               // console.log("临时链接锚文本",that.临时链接锚文本)
+                return that.临时链接锚文本
+            },
+            设定文档属性:async function(属性名,属性值){
+                let that = this
+                
+                await that.设定块属性(that.当前文档id,属性名,属性值)
+                that.获取主界面()
+                that.设定文档属性元素()
+               // that.解析文档属性()
+            },
+            设定文档属性元素:async function(){
+                let that = this
+                that.获取主界面()
+                let 临时书签元素 = document.createElement('div')
+                if (that.当前文档属性.bookmark!=""&&that.当前文档属性.bookmark){
+                    临时书签元素.innerHTML = `<div class="protyle-attr--bookmark">${that.当前文档属性.bookmark}</div>`}
+                let 临时命名元素 = document.createElement('div')
+                if (that.当前文档属性.name!=""&&that.当前文档属性.name){
+                临时命名元素.innerHTML = `<div class="protyle-attr--name"><svg><use xlink:href="#iconN"></use></svg>${that.当前文档属性.name}</div>`}
+                let 临时别名元素 = document.createElement('div')
+                if (that.当前文档属性.alias!=""&&that.当前文档属性.alias){
+                    临时别名元素.innerHTML = `<div class="protyle-attr--alias"><svg><use xlink:href="#iconA"></use></svg>${that.当前文档属性.alias}</div>`}
+                let 临时备注元素 = document.createElement('div')
+                if (that.当前文档属性.memo!=""&&that.当前文档属性.memo){
+                临时备注元素.innerHTML =`<div class="protyle-attr--memo b3-tooltips b3-tooltips__nw" aria-label="${that.当前文档属性.memo}"><svg><use xlink:href="#iconM"></use></svg></div>`
+                }
+                let 临时反引元素 = document.createElement('div')
+
+                if (that.文档被引用数!=0&&that.文档被引用数){
+                    临时备注元素.innerHTML =`<div class="protyle-attr--refcount popover__block" data-id="${that.当前文档id}" style="">${that.文档被引用数}</div>`
+                }
+                that.文档属性元素.innerHTML = 临时书签元素.innerHTML+ 临时命名元素.innerHTML+临时别名元素.innerHTML+临时备注元素.innerHTML+临时反引元素.innerHTML
+            },
+            设定块属性:async function(id,属性名,属性值){
+                let datas = ({
+                  })
+                datas["id"] = id
+                datas["attrs"] = {}
+                let 真实属性名 = 属性名.slice(0)
+                if (属性名 !='name'&&属性名!='alias'&&属性名!='memo'&&属性名!='bookmark'){
+                    if(属性名.slice(0,7)!="custom-"){ 真实属性名= "custom-"+属性名}
+                }
+                datas["attrs"][真实属性名]=属性值
+              //  let jsondatas = JSON.stringify(datas)
+              let jsondatas = datas
+                //console.log(datas)
+                await axios({
+                method:'POST',
+                headers:{'Authorization': 'Token' + this.apitoken},
+                url:'http://'+this.思源伺服ip + '/api/attr/setBlockAttrs',
+                data:(jsondatas)
+                })
+
+            },
+            获取挂件自身元素(){
+                let that =this
+                that.挂件自身元素 = self.frameElement.parentElement.parentElement
+                挂件iframe = self.frameElement
+                if(that.挂件自身元素){
+                    that.挂件自身id = that.挂件自身元素.getAttribute("data-node-id")
+                    挂件iframe.setAttribute("style",挂件iframe.getAttribute("style")+'border-left:none;border-right:none;')
+                    }
+                else{return null}
+            },
+            获取文档id:async function(){
+                let that = this 
+                that.挂件自身属性 =  await 以sql向思源请求块数据(that.思源伺服ip,that.apitoken,`select * from blocks where id = '${that.挂件自身id}'`,"挂件自身属性")
+              //  console.log(that.挂件自身属性)
+                that.当前文档id = that.挂件自身属性[0]["root_id"]
+            },
+            获取文档属性:async function(){
+                let that =this
+                that.当前文档属性 = await that.通过id获取属性(that.当前文档id)
+                that.当前文档解析属性 = await that.通过id获取属性(that.当前文档id)
+            },
+          
+            获取文档信息:async function(){
+               let that = this
+               let 临时块信息数组=  await that.$以id数组通过sql形式获取思源块信息数组([that.当前文档id])
+               that.当前文档信息 = 临时块信息数组[0]
+            },
+            
+            获取主界面(){
+                let that = this
+                try{
+                that.主界面 = window.parent.document}
+                catch(e){this.需要重新设定路径=true}
+                if(that.当前文档id!=""){
+                that.文档头图元素 =  that.主界面.querySelector(`div.protyle-background[data-node-id='${that.当前文档id}']`)
+                that.文档标题元素 = that.主界面.querySelector(`.protyle-background[data-node-id='${that.当前文档id}']+.protyle-title`)
+                that.文档属性元素 =  that.文档标题元素.querySelector(".protyle-attr")}
+            },
+            
+
+            通过id获取属性:async function(id){
+                let that = this 
+                let obj ={}
+                await axios({
+                    method:"post",
+                    url:'http://'+that.思源伺服ip + '/api/block/getDocInfo',
+                    headers:{'Authorization': 'Token '+ that.apitoken },
+                    data:({"id":`${id}`})
+                    }).then(
+                        result=>{
+                          //  console.log(result.data)
+                            obj = result.data["data"]['ial']
+                            that.文档被引用数 = result.data["data"]['refCount']
+                        }
+                    )
+                return obj
+            },
+            获取预定义属性:async function(){
+                let that = this
+                let sql =  'select * from blocks where type = "c" and content like "/*@doctype@attr*/%"'
+                this.自定义sql块列表 = await 以sql向思源请求块数据(that.思源伺服ip,that.apitoken,sql)
+             //   console.log(自定义sql块列表)
+                this.自定义sql块列表.forEach(el=>{
+                let id = el["id"]   
+                that.$set(that.预定义属性规则对象,id,el)
+                that.解析预定义属性规则()
+                })
+            },
+            解析预定义属性规则(){
+                for(item in this.预定义属性规则对象){
+                    let block =  this.预定义属性规则对象[item]
+                    console.log(block)
+                    let id = block.id
+                    let 文本 =  block.content.replace("/*@doctype@attr*/","")
+                    let 临时数组 = []
+                   // try{
+                         临时数组 = JSON.parse(文本)
+                        if (临时数组){
+                            临时数组.forEach(el=>{
+                                if(el.name&&el.label&&el.type){
+                                    this.预定义属性规则数组.push(el)
+                                }
+                            })
+                        }
+                   // }catch(e){}
+                    this.预定义属性规则数组 = Array.from(new Set(this.预定义属性规则数组))
+                    console.log(this.预定义属性规则数组)
+                }
+            },
+            通过内容设置属性:async function(元素,id){
+              /*  let 文本内容 = 元素.innerText
+                let 当前块属性 = await 以sql向思源请求块数据(this.思源伺服ip,this.apitoken,`select * from blocks where id = "${id}"`)
+                let 字符串=""
+                let 当前属性=""
+                let 当前目标id=""
+                let 默认属性对照={"name":"命名","alias":"别名","memo":"备注","bookmerk":"书签"}
+                for (属性 in 默认属性对照){
+                    if(文本内容.indexOf(`@doc.${属性}:`)==0){
+                            字符串 =  文本内容.replace(`@doc.${属性}:`,"")
+                            当前属性 = 属性+""
+                            当前目标id = 当前块属性[0]["root_id"]
+                    }
+                    if(文本内容.indexOf(`@doc.${默认属性对照[属性]}:`)==0){
+                            字符串 =  文本内容.replace(`@doc.${默认属性对照[属性]}:`,"")
+                            当前属性 = 属性+""
+                            当前目标id = 当前块属性[0]["root_id"]
+                    }
+                }
+                await this.设定块属性(当前目标id,当前属性,字符串)*/
+            },
+            
+            
+        }
+        })
+
+
+</script>
+<style>
+ 
+</style>
+</html>
